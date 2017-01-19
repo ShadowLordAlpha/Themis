@@ -1,1 +1,11 @@
-/bin/
+# Ignore Gradle Files
+
+build/
+.gradle/
+bin/
+
+# Ignore Eclipse Files
+
+.settings/
+.classpath
+.project
