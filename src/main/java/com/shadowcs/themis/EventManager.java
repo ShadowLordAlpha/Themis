@@ -19,87 +19,113 @@
  */
 package com.shadowcs.themis;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
 /**
- * The EventManager class follows the Event -> Listener model where when an event is fired its listeners are invoked
- * and deal with it.
  * 
- * @version 1.0.0
+ * 
+ * @since 0.3.0
  * @author Josh "ShadowLordAlpha"
  *
  */
 public class EventManager implements AutoCloseable {
 	
-	protected ExecutorService threadPool;
-	protected Map<Class<?>, List<Consumer<?>>> listenerMap;
+	private AsynchronousMode async;
+	private ExecutorService pool;
+	private LoadingCache<Class<?>, Set<Consumer<?>>> listenerCache;
+	
+	EventManager(AsynchronousMode async, ExecutorService pool) {
+		
+		this.async = async;
+		this.pool = pool;
+		listenerCache = Caffeine.newBuilder().build(key -> ConcurrentHashMap.newKeySet());
+		
+	}
+
+	public <V> EventManager addListener(Class<V> clazz, Consumer<V> listener) {
+
+		Set<Consumer<?>> list = listenerCache.get(clazz);
+		if(list == null) {
+			throw new NullPointerException();
+		}
+		
+		list.add(listener);
+		
+		return this;
+	}
+
+	public <V> EventManager removeListener(Class<V> clazz, Consumer<V> listener) {
+		
+		Set<Consumer<?>> list = listenerCache.get(clazz);
+		if(list == null) {
+			throw new NullPointerException();
+		}
+		
+		list.remove(listener);
+		
+		return this;
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	public <E> EventManager executeEvent(E event) {
+		return executeEvent((Class<E>) event.getClass(), event);
+	}
+	
+	public <E> EventManager executeEvent(Class<E> clazz, E event) {
+		
+		submitEvent(clazz, event);
+		
+		return this;
+	}
 	
 	/**
-	 * Creates a new EventManager. Default EventManagers are fully separate from each other and do not share resources.
+	 * Simplified Version
+	 * 
+	 * @param event
+	 * @return
 	 */
-	public EventManager() {
-		threadPool = Executors.newCachedThreadPool();
-		listenerMap = new ConcurrentHashMap<Class<?>, List<Consumer<?>>>();
+	@SuppressWarnings("unchecked")
+	public <E> Future<E> submitEvent(E event) {
+		return submitEvent((Class<E>) event.getClass(), event);
 	}
 	
-	public <T> void addListener(Class<T> clazz, Consumer<T> listener) {
+	/**
+	 * 
+	 * @param clazz The class of the event
+	 * @param event The event to be fired
+	 * @return A {@code Future} representing the result of an asynchronous computation. {@code null} is the most common return and does not 
+	 * indicate that an error did occur but that there was no {@code Future} to return. This could be due to the {@code AsynchronousMode} or
+	 * because of an error.
+	 */
+	@SuppressWarnings("unchecked")
+	public <E> Future<E> submitEvent(Class<E> clazz, E event) {
 		
-		List<Consumer<?>> listenerList = listenerMap.get(clazz);
-		if(listenerList == null) {
-			listenerList = new Vector<Consumer<?>>(); // Might actually be able to make due with a simple list
-			listenerMap.put(clazz, listenerList);
+		Set<Consumer<?>> list = listenerCache.get(clazz);
+		
+		switch(async) {
+			case EVENT:
+				return pool.submit(() -> list.forEach((listener) -> ((Consumer<E>) listener).accept(event)), event);
+			case NONE:
+				list.forEach((listener) -> ((Consumer<E>) listener).accept(event));
+				return null;
+			case TOTAL:
+				list.forEach((listener) -> pool.submit(() -> ((Consumer<E>) listener).accept(event)));
+				return null;
+			default:
+				return null;
 		}
-		
-		listenerList.add(listener);
-	}
-	
-	public <T> Future<?> addListenerAsync(Class<T> clazz, Consumer<T> listener) {
-		
-		return threadPool.submit(() -> addListener(clazz, listener));
-	}
-	
-	public <T> void removeListener(Class<T> clazz, Consumer<T> listener) {
-		
-		List<Consumer<?>> listenerList = listenerMap.get(clazz);
-		if(listenerList != null) {
-			listenerList.remove(listener);
-			if(listenerList.isEmpty()) {
-				listenerMap.remove(clazz);
-			}
-		}
-	}
-	
-	public <T> Future<?> removeListenerAsync(Class<T> clazz, Consumer<T> listener) {
-		
-		return threadPool.submit(() -> removeListener(clazz, listener));
-	}
-	
-	public <T> void fireEvent(T event) {
-		
-		// Annoying cast here because of generics stuff
-		List<Consumer<?>> listenerList = listenerMap.get(event.getClass());
-		if(listenerList != null) {
-			listenerList.forEach(consumer -> ((Consumer<T>) consumer).accept(event));
-		}
-	}
-	
-	public <T> Future<?> fireEventAsync(T event) {
-		return threadPool.submit(() -> fireEvent(event));
 	}
 
 	@Override
-	public void close() {
-		
-		// in order to properly close and not wait 20 to 30 seconds or so we need to shut down and clean up objects
-		listenerMap.clear();
-		// we might actually need some of this information
-		threadPool.shutdown();
+	public void close() throws Exception {
+		// TODO: maybe await shutdown?
+		pool.shutdown();
 	}
 }
