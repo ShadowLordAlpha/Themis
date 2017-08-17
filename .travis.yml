@@ -4,6 +4,9 @@ sudo: true
 
 dist: trusty
 
+script: 
+  - ./gradlew build
+
 jdk:
   - oraclejdk8
   - openjdk8
