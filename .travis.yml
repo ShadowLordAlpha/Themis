@@ -1,12 +1,10 @@
 language: java
 
+dist: trusty
+
 jdk:
   - oraclejdk8
-  
-before_script:
-  - chmod a+x gradlew
-
-sccript: ./gradlew build
+  - openjdk8
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
