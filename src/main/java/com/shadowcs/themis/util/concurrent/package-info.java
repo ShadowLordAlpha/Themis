@@ -19,8 +19,8 @@
  */
 
 /**
- * Contains the generic Event framework
+ * Utility classes useful in assisting with the concurrent nature of the event framwork.
  * 
  * @author Josh "ShadowLordAlpha"
  */
-package com.shadowcs.themis;
+package com.shadowcs.themis.util.concurrent;

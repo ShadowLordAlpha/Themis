@@ -17,10 +17,21 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
+package com.shadowcs.themis.util.concurrent;
+
+import java.util.concurrent.ThreadFactory;
 
 /**
- * Contains the generic Event framework
+ * An object that creates new threads on demand. This is one of the simplest possible implementations of a
+ * ThreadFactory.
  * 
  * @author Josh "ShadowLordAlpha"
+ *
  */
-package com.shadowcs.themis;
+public class SimpleThreadFactory implements ThreadFactory {
+
+	@Override
+	public Thread newThread(Runnable r) {
+		return new Thread(r);
+	}
+}

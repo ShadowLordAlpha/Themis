@@ -17,10 +17,30 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
+package com.shadowcs.themis.util.concurrent;
+
+import com.shadowcs.themis.util.function.Procedure;
 
 /**
- * Contains the generic Event framework
+ * An object that creates new threads on demand with a procedure that is run at some point before the first task takes
+ * place.
  * 
  * @author Josh "ShadowLordAlpha"
+ *
  */
-package com.shadowcs.themis;
+public class ProcedureThreadFactory extends DefaultThreadFactory {
+
+	private Procedure procedure;
+
+	public ProcedureThreadFactory(Procedure procedure) {
+		super();
+		this.procedure = procedure;
+	}
+
+	public Thread newThread(Runnable r) {
+		return super.newThread(() -> {
+			procedure.invoke();
+			r.run();
+		});
+	}
+}
