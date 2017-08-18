@@ -24,8 +24,6 @@ import java.util.concurrent.ThreadFactory;
 /**
  * An object that creates new threads on demand. This is one of the simplest possible implementations of a
  * ThreadFactory.
- * 
- * @author Josh "ShadowLordAlpha"
  *
  */
 public class SimpleThreadFactory implements ThreadFactory {

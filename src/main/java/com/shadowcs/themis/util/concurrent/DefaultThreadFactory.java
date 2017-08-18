@@ -23,9 +23,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * An object that creates new threads on demand.
- * 
- * @author Josh "ShadowLordAlpha"
+ * An object that creates new threads on demand. This is a copy of the Executors.defaultThreadFactory ThreadFactory.
  *
  */
 public class DefaultThreadFactory implements ThreadFactory {

@@ -17,7 +17,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
-package com.shadowcs.themis;
+package com.shadowcs.themis_old;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
