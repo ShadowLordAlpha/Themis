@@ -21,6 +21,7 @@ package com.shadowcs.themis.util.function;
 
 import java.util.Objects;
 
+// basically a runnable with different names
 /**
  * Represents an operation that accepts no input arguments and returns no result. Unlike most other functional
  * interfaces, {@code Procedure} is expected to operate via side-effects.

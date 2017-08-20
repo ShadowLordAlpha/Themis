@@ -5,7 +5,7 @@ Feature: Thread Factory
 The tasks run are thread safe so as long as the threads are created and run the value that comes out should be correct. If a
 task is not thread safe then it is not the thread factory being tested.
 
-	# Basic tests using a default executor service
+# Basic tests using a default executor service
 Scenario: Single Thread Executor 
 	Given Jeff creates a new "SINGLE" thread executor. 
 	And Jeff executes 100 basic test tasks. 
