@@ -39,7 +39,9 @@ public class ProcedureThreadFactory extends DefaultThreadFactory {
 
 	public Thread newThread(Runnable r) {
 		return super.newThread(() -> {
-			procedure.invoke();
+			if(procedure != null) {
+				procedure.invoke();
+			}
 			r.run();
 		});
 	}

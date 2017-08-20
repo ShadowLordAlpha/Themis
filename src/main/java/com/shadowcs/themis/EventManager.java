@@ -20,4 +20,14 @@ public class EventManager {
 		
 		return this;
 	}
+	
+	// TODO: Submit, returns a future
+	
+	// TODO: Execute, returns nothing
+	
+	// TODO: Invoke, blocking run on current thread
+	
+	private class bogus<T> {
+		
+	}
 }

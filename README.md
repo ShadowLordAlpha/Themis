@@ -15,6 +15,16 @@ While working on several other projects I wanted Event systems. I could have cus
 
 TODO
 
+## What's Next
+
+honestly this topic mostly needs some experimentation and what users want or need.
+
+* Remove all other dependencies (honestly decently easy but speed checks and see if its actually useful before I do so)
+* Allow EventHandler methods from classes, again not really hard just have to wrap them in a lambda method which makes removing them a bit harder
+* Allow multiple arguments, much harder but still doable though it could possibly have speed because of object arrays impacts so that needs to be investigated first
+* large amounts of incode documentation to do though most of the code should be decently readable
+* Automated testing
+
 ## License
 
 The MIT License (MIT)
