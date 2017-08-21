@@ -14,7 +14,7 @@ public class EventManager {
 	private LoadingCache<Class<?>, Collection<Consumer<?>>> lCache;
 
 	// TODO: eventually allow a custom cache or something if I replace caffeine
-	EventManager(ExecutorService eService) {
+	public EventManager(ExecutorService eService) {
 		this.eService = eService;
 		lCache = Caffeine.newBuilder().build(key -> ConcurrentHashMap.newKeySet());
 	}
