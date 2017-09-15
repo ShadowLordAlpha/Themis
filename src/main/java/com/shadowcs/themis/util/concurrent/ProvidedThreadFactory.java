@@ -23,7 +23,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
-import com.shadowcs.themis.util.function.Procedure;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An object that takes already started and provided threads and allows them to be used as part of a thread pool without
@@ -36,8 +36,9 @@ import com.shadowcs.themis.util.function.Procedure;
  * @author Josh "ShadowLordAlpha"
  *
  */
-public class ProvidedThreadFactory implements ThreadFactory {
+public class ProvidedThreadFactory implements ThreadFactory, AutoCloseable {
 
+	private AtomicInteger count = new AtomicInteger();
 	private Queue<ThreadWork> queue = new LinkedBlockingQueue<ThreadWork>();
 
 	public ProvidedThreadFactory() {
@@ -45,7 +46,7 @@ public class ProvidedThreadFactory implements ThreadFactory {
 	}
 
 	// just a cleaner cede
-	public void cede() throws InterruptedException {
+	public void cede() {
 		cede(null); // does nothing
 	}
 
@@ -54,23 +55,35 @@ public class ProvidedThreadFactory implements ThreadFactory {
 	 * after the thread is first added to the thread waiting queue. All this is for is making sure that when a
 	 * ProvidedThreadFactory has successfully hijacked a thread another thread is able to start. A Procedure is always
 	 * started in a throw away thread. This means that the procedure may go on forever without affecting the provided
-	 * thread as it is running on a newly created thread.
+	 * thread as it is running on a newly created thread. If the provided thread is interrupted it is not recycled. Instead the
+	 * exception is caught and the method is returned. It is assumed that the interrupt is expected behavior. If not simply recalling
+	 * cede on the thread (though a loop in the calling method) will basically work the same.
 	 * 
 	 * @param procedure
 	 * @throws InterruptedException
 	 */
-	public void cede(Procedure procedure) throws InterruptedException {
+	public void cede(Runnable procedure) {
+		count.incrementAndGet();
 		ThreadWork work = new ThreadWork();
 		if(queue.offer(work)) {
 			if(procedure != null) {
-				new Thread(() -> procedure.invoke()).run();
+				new Thread(procedure, "procedure-cede").start(); // TODO: probably not name the thread
 			}
 			
 			do {
-				work.await();
+				try {
+					work.await();
+				} catch(InterruptedException e) {
+					// Thread interrupted so we simply leave
+					// This is expected to be proper behavior
+					// e.printStackTrace();
+					count.decrementAndGet();
+					return;
+				}
 			} while(queue.offer(work));
 		}
 
+		count.decrementAndGet();
 		throw new RuntimeException("Failed to cede/recycle thread!");
 	}
 
@@ -79,6 +92,16 @@ public class ProvidedThreadFactory implements ThreadFactory {
 		if(work != null) { return new Thread(() -> work.submit(r)); }
 
 		return null;
+	}
+	
+	@Override
+	public void close() {
+		Runnable work = () -> Thread.currentThread().interrupt();
+		
+		// I might not need count but it works well for now
+		for(int i = 0; i < count.get(); i++) {
+			newThread(work).start();
+		}
 	}
 
 	private class ThreadWork {

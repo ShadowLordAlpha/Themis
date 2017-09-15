@@ -4,11 +4,12 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
-public class EventManager {
+public class EventManager implements AutoCloseable {
 
 	private ExecutorService eService;
 	private LoadingCache<Class<?>, Collection<Consumer<?>>> lCache;
@@ -31,14 +32,17 @@ public class EventManager {
 
 	// TODO: Submit, returns a future
 	public <T> Future<T> submit(T event) {
-		
+
 		return eService.submit(() -> event(event), event);
 	}
 
 	// TODO: Execute, returns nothing
 	public <T> void execute(T event) {
-
-		eService.execute(() -> event(event));
+		
+		// For some reason calling execute on the pool actually causes an error sometimes
+		// so better to submit the task and just not bother returning the future as its basically 
+		// the same thing in this context
+		submit(event);
 	}
 
 	// TODO: Invoke, blocking run on current thread
@@ -56,7 +60,14 @@ public class EventManager {
 		});
 	}
 
-	public static void main(String[] args) {
-		
+	@Override
+	public void close() {
+		eService.shutdown();
+		try {
+			eService.awaitTermination(30, TimeUnit.SECONDS);
+		} catch(InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

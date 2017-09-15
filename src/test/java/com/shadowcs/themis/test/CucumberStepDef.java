@@ -11,7 +11,6 @@ import com.shadowcs.themis.util.concurrent.DefaultThreadFactory;
 import com.shadowcs.themis.util.concurrent.ProcedureThreadFactory;
 import com.shadowcs.themis.util.concurrent.ProvidedThreadFactory;
 import com.shadowcs.themis.util.concurrent.SimpleThreadFactory;
-import cucumber.api.PendingException;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 
@@ -35,12 +34,7 @@ public class CucumberStepDef {
 				tFactory = new ProvidedThreadFactory();
 				Semaphore sema = new Semaphore(0);
 				new Thread(() -> {
-					try {
-						((ProvidedThreadFactory) tFactory).cede(() -> sema.release(1));
-					} catch(InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					((ProvidedThreadFactory) tFactory).cede(() -> sema.release(1));
 				}).start();
 				
 				// YES, you do have to wait for the factory to be ready!

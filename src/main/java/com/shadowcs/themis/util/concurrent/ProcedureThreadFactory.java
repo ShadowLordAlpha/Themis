@@ -19,8 +19,6 @@
  */
 package com.shadowcs.themis.util.concurrent;
 
-import com.shadowcs.themis.util.function.Procedure;
-
 /**
  * An object that creates new threads on demand with a procedure that is run at some point before the first task takes
  * place.
@@ -30,9 +28,9 @@ import com.shadowcs.themis.util.function.Procedure;
  */
 public class ProcedureThreadFactory extends DefaultThreadFactory {
 
-	private Procedure procedure;
+	private Runnable procedure;
 
-	public ProcedureThreadFactory(Procedure procedure) {
+	public ProcedureThreadFactory(Runnable procedure) {
 		super();
 		this.procedure = procedure;
 	}
@@ -40,7 +38,7 @@ public class ProcedureThreadFactory extends DefaultThreadFactory {
 	public Thread newThread(Runnable r) {
 		return super.newThread(() -> {
 			if(procedure != null) {
-				procedure.invoke();
+				procedure.run();
 			}
 			r.run();
 		});
