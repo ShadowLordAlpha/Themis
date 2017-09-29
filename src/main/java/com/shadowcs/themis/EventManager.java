@@ -3,6 +3,7 @@ package com.shadowcs.themis;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -15,6 +16,10 @@ public class EventManager implements AutoCloseable {
 	private LoadingCache<Class<?>, Collection<Consumer<?>>> lCache;
 
 	// TODO: eventually allow a custom cache or something if I replace caffeine
+	public EventManager() {
+		this(Executors.newCachedThreadPool());
+	}
+	
 	public EventManager(ExecutorService eService) {
 		this.eService = eService;
 		lCache = Caffeine.newBuilder().build(key -> ConcurrentHashMap.newKeySet());
