@@ -26,7 +26,9 @@ public class EventManager implements AutoCloseable {
 	}
 
 	public <V> EventManager addListener(Consumer<V> listener, Class<V> klass) {
-		lCache.get(klass).add(listener);
+		if(listener != null && klass != null) {
+			lCache.get(klass).add(listener);
+		}
 		return this;
 	}
 

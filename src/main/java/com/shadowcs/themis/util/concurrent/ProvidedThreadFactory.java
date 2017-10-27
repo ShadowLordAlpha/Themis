@@ -23,7 +23,6 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * An object that takes already started and provided threads and allows them to be used as part of a thread pool without
@@ -38,16 +37,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ProvidedThreadFactory implements ThreadFactory, AutoCloseable {
 
-	private AtomicInteger count = new AtomicInteger();
-	private Queue<ThreadWork> queue = new LinkedBlockingQueue<ThreadWork>();
+	private volatile Queue<ThreadWork> queue = new LinkedBlockingQueue<ThreadWork>();
+	private volatile Queue<ThreadWork> workQueue = queue;
 
 	public ProvidedThreadFactory() {
 
 	}
 
+	// TODO: document and maybe throw Interrupt as a different type?
 	// just a cleaner cede
 	public void cede() {
-		cede(null); // does nothing
+		cede(null);
 	}
 
 	/**
@@ -63,32 +63,21 @@ public class ProvidedThreadFactory implements ThreadFactory, AutoCloseable {
 	 * @throws InterruptedException
 	 */
 	public void cede(Runnable procedure) {
-		count.incrementAndGet();
+		
 		ThreadWork work = new ThreadWork();
-		if(queue.offer(work)) {
-			if(procedure != null) {
-				new Thread(procedure, "procedure-cede").start(); // TODO: probably not name the thread
+		new Thread(procedure).start();
+		
+		while(queue != null && queue.offer(work)) {
+			try {
+				work.await();
+			} catch(InterruptedException e) {
+				return;
 			}
-			
-			do {
-				try {
-					work.await();
-				} catch(InterruptedException e) {
-					// Thread interrupted so we simply leave
-					// This is expected to be proper behavior
-					// e.printStackTrace();
-					count.decrementAndGet();
-					return;
-				}
-			} while(queue.offer(work));
 		}
-
-		count.decrementAndGet();
-		throw new RuntimeException("Failed to cede/recycle thread!");
 	}
 
 	public Thread newThread(Runnable r) {
-		ThreadWork work = queue.poll();
+		ThreadWork work = workQueue.poll();
 		if(work != null) { return new Thread(() -> work.submit(r)); }
 
 		return null;
@@ -96,12 +85,9 @@ public class ProvidedThreadFactory implements ThreadFactory, AutoCloseable {
 	
 	@Override
 	public void close() {
-		Runnable work = () -> Thread.currentThread().interrupt();
 		
-		// I might not need count but it works well for now
-		for(int i = 0; i < count.get(); i++) {
-			newThread(work).start();
-		}
+		queue = null;
+		workQueue.forEach(work -> work.submit(null));
 	}
 
 	private class ThreadWork {
@@ -115,7 +101,9 @@ public class ProvidedThreadFactory implements ThreadFactory, AutoCloseable {
 
 		public void await() throws InterruptedException {
 			sema.acquire();
-			rWork.run();
+			if(rWork != null) {
+				rWork.run();
+			}
 		}
 
 		public void submit(Runnable r) {

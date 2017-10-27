@@ -19,7 +19,7 @@
  */
 
 /**
- * Utility classes useful in assisting with the concurrent nature of the event framwork.
+ * Utility classes useful in assisting with the concurrent nature of the event framework.
  * 
  * @author Josh "ShadowLordAlpha"
  */

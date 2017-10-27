@@ -29,9 +29,12 @@ package com.shadowcs.themis.util.concurrent;
 public class ProcedureThreadFactory extends DefaultThreadFactory {
 
 	private Runnable procedure;
+	
+	public ProcedureThreadFactory() {
+		this(null);
+	}
 
 	public ProcedureThreadFactory(Runnable procedure) {
-		super();
 		this.procedure = procedure;
 	}
 
@@ -40,7 +43,9 @@ public class ProcedureThreadFactory extends DefaultThreadFactory {
 			if(procedure != null) {
 				procedure.run();
 			}
-			r.run();
+			if(r != null) {
+				r.run();
+			}
 		});
 	}
 }
