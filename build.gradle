@@ -1,7 +1,7 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 
-version = '0.4.0'
+version = '0.5.0'
 
 // Repositories, where to find dependencies
 repositories {
@@ -10,18 +10,19 @@ repositories {
 
 // Dependencies
 dependencies {
+
     // The production code uses the SLF4J logging API at compile time
-    compile 'org.slf4j:slf4j-api:1.7.21'
+    implementation 'org.slf4j:slf4j-api:1.7.21'
 
 	// Caffeine high performance cache library
-	compile 'com.github.ben-manes.caffeine:caffeine:2.4.0'
+	implementation 'com.github.ben-manes.caffeine:caffeine:2.4.0'
 	
     // Testing stuff
-    testCompile 'junit:junit:4.12'
-    testCompile 'info.cukes:cucumber-junit:1.2.5'
-    testCompile 'info.cukes:cucumber-java:1.2.5'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'info.cukes:cucumber-junit:1.2.5'
+    testImplementation 'info.cukes:cucumber-java:1.2.5'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
+    gradleVersion = '4.2.1'
 }

@@ -55,6 +55,7 @@ public class EventManager implements AutoCloseable {
 		event(event);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> void event(T event) {
 		// this should be working
 		lCache.asMap().forEach((key, col) -> {
