@@ -1,7 +1,7 @@
 # Themis
 
 ![build](https://travis-ci.org/ShadowLordAlpha/Themis.svg?branch=master)
-![version](https://img.shields.io/badge/version-0.4.0-brightgreen.svg)
+![version](https://img.shields.io/badge/version-0.5.1-brightgreen.svg)
 
 ## Overview
 

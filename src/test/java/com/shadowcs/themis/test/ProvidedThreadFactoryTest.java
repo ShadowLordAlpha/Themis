@@ -136,6 +136,8 @@ public class ProvidedThreadFactoryTest {
 			}
 		}
 		
+		Thread.sleep(1000);
+		
 		pThreadFactory.close();
 		thread0.join();
 		thread1.join();

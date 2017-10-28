@@ -70,6 +70,8 @@ public class EventManagerTest {
 			eventManager.invoke((Runnable) () -> integer.incrementAndGet());
 		}
 		
+		Thread.sleep(1000);
+		
 		assertEquals(300, integer.get());
 	}
 
